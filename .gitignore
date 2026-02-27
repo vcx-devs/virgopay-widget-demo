@@ -1,0 +1,47 @@
+# =========================
+# macOS
+# =========================
+.DS_Store
+
+# =========================
+# IDE
+# =========================
+.vscode/
+.idea/
+*.iml
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# Flutter / Dart
+# =========================
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub/
+build/
+.dart_tool/
+
+# =========================
+# Android
+# =========================
+**/android/.gradle/
+**/android/local.properties
+**/android/app/build/
+
+# =========================
+# iOS
+# =========================
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Runner.xcworkspace/
+
+# =========================
+# Misc
+# =========================
+coverage/
