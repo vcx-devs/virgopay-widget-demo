@@ -33,6 +33,13 @@ build/
 **/android/app/build/
 
 # =========================
+# Android Signing (NEVER commit)
+# =========================
+*.jks
+*.keystore
+**/key.properties
+
+# =========================
 # iOS
 # =========================
 **/ios/Pods/
