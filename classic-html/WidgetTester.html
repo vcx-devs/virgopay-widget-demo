@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Widget Tester</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f5f5f5;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        }
+
+        iframe {
+            border: 1px solid #ccc;
+            width: 400px;
+            height: 800px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+
+</head>
+<body>
+    <iframe id='myFrame' 
+    src="https://sandbox.virgopay.co/page#/widget/login?type=1&code=your_code"
+    title="Dashboard" 
+    loading="eager"
+    sandbox="allow-modals allow-forms allow-scripts allow-top-navigation-by-user-activation allow-popups allow-same-origin"
+    allow="camera; microphone"
+    ></iframe>
+    <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const iframe = document.getElementById("myFrame");
+    if (!iframe) { console.error('#myFrame not found'); return; }
+    // Wait for the child page to request configuration
+    // This prevents sending messages too early (e.g., to about:blank)
+    window.addEventListener("message", (e) => {
+      console.log('[parent] iframe event:',  e);
+      if(e.data.type === "NONCE"){
+        //Login nonce for session persistence.
+        localStorage.setItem("NONCE", e.data.payload.nonce);
+      }
+      if(e.data.type === "OPEN_LINK"){
+        //mandatory: open external links in a new tab for better user experience and security
+        window.open(e.data.payload.url, '_blank');
+      }
+      if(e.data.type === "LOG_OUT"){
+        //mandatory if NONCE is stored on host side: clear session nonce on logout to prevent unauthorized access
+        localStorage.removeItem("NONCE");
+      } 
+      if(e.data.type === "MAIL_TO"){
+        // Open email app and send email to the email address in message payload.
+      } 
+      if(e.data.type === "TRANSACTION_FUND"){
+        // Option 1:
+        // Close the widget and redirect the user to the host's page
+        // where the transaction completion is handled.
+
+        // Option 2:
+        // Ignore this event.
+        // The widget will automatically redirect to the homepage
+        // after the transaction is completed.
+      }
+      if(e.data.type === "CUSTOMER_ID"){
+        // Pass this customerId to your backend. And make server call to VirgoPay API to synchronize users's address.
+      } 
+      if(e.data.type === "TRANSACTION_ID"){
+        //provides a transaction ID for further API lookup.
+      } 
+      if (e.source !== iframe.contentWindow) return; 
+      
+      // Only respond when the child explicitly requests configuration       
+      if (!e.data || e.data.type !== "REQUEST_CONFIG") return;
+
+      // e.origin is the origin of the child page
+      const cfg = {
+        type: "WIDGET_CONFIG",
+        payload: {    
+          // bgColor: "#ffcc00",
+          // fontColor: "red",
+          theme: "dark", // theme: supported values -> "light" | "dark"
+          primaryColor: '#ffcc00',  // primary color
+          isMobileApp: false, // Indicates whether the widget is embedded inside a mobile app
+          logoUrl:'https://virgocx.s3.ca-central-1.amazonaws.com/prod/2022/03/21/f324ce337d114b4a9aa37dcc9052d670.png',// Custom logo URL displayed in the widget
+          addressInfo:'ENCRYPTED_ADRRESS_STRING',// Optional encrypted address string for address synchronization
+          nonce: localStorage.getItem("NONCE") || '' // Optional session nonce
+        },
+      };
+
+      console.log("[parent] got REQUEST_CONFIG from:", e.origin);
+      console.log("[parent] sending WALLET_CONFIG:", cfg);
+      
+      iframe.contentWindow.postMessage(cfg, e.origin); // Respond using the child's actual origin
+    });
+
+    // After iframe loads, send a PING to trigger REQUEST_CONFIG from child
+    iframe.addEventListener("load", () => {
+      try {
+        const childOrigin = new URL(iframe.src).origin;     
+        iframe.contentWindow.postMessage({ type: "PING" }, childOrigin);
+      } catch {}
+    });
+  });
+</script>
+</body>
+
+</html>
